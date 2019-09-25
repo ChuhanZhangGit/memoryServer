@@ -1,3 +1,4 @@
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 import _ from 'lodash';
@@ -48,20 +49,34 @@ class Memory extends React.Component {
       temp_slots[other_idx][1] = "revealed";
     }
     else if (other_state === "hidden") {
-      temp_slots[id_num][1] = "clicked";
+      for (let i = 0; i < temp_slots.length; i++) {
+        if (temp_slots[i][1] === "clicked") {
+          temp_slots[i][1] = "hidden";
+        }
+      }
+      temp_slots[id_num][1] = "revealed";
       window.setTimeout(() => {
         this.button_time_out(id_num);
       }, 1000);
     }
     let temp_state = _.assign({}, this.state, { slotArray: temp_slots });
     this.setState(temp_state);
-
     // why must use bind to pass "this" to current function.
+  }
+
+  click_clicked(id_num) {
+    let temp_slots = this.state.slotArray;
+    temp_slots[id_num][1] = "revealed";
+    window.setTimeout(() => {
+      this.button_time_out(id_num);
+    }, 1000);
+    let temp_state = _.assign({}, this.state, { slotArray: temp_slots });
+    this.setState(temp_state);
   }
 
   button_time_out(id_num) {
     let temp_slots = this.state.slotArray;
-    temp_slots[id_num][1] = "hidden";
+    temp_slots[id_num][1] = "clicked";
     let temp_state = _.assign({}, this.state, { slotArray: temp_slots });
     this.setState(temp_state);
   }
@@ -101,8 +116,7 @@ class Memory extends React.Component {
       </button>
     </div>;
     let clicked = <div key={id_num} className="column">
-      <button>
-        {this.state.slotArray[id_num][0]}
+      <button onClick={this.click_clicked.bind(this, id_num)}>
       </button>
     </div>;
     let hidden = <div key={id_num} className="column">
@@ -130,25 +144,3 @@ function Restart_button(param) {
     </div>
   );
 }
-
-
-
-    // let button = <div className="column" onMouseMove={this.swap.bind(this)}>
-    //   <p><button onClick={this.hax.bind(this)}>Click Me</button></p>
-    // </div>;
-
-    // let blank = <div className="column">
-    //   <p>Nothing here.</p>
-    // </div>;
-
-    // if (this.state.left) {
-    //   return <div className="row">
-    //     {button}
-    //     {blank}
-    //   </div>;
-    // }
-    // else {
-    //   return <div className="row">
-    //     {blank}
-    //     {button}
-    //   </div>;
