@@ -1,0 +1,43 @@
+Please fill in answers to the questions below:
+
+
+1. What's your name?
+
+Chuhan Zhang
+
+
+2. What's the URL of the github repo with your work for this HW?
+
+https://github.com/ChuhanZhangGit/memory
+
+
+3. What's the URL that you deployed to?
+
+memory1.chuhandev.com	
+
+
+4. Is your game functionality complete? If not, what's missing?
+
+The game function completed and is resemble the example game. It would display 
+the letter after clicked until another hidden block is clicked. Then it would display both letter for 1s before disappearing.
+
+
+5. Is your game properly deployed? If not, what went wrong?
+
+The game is deployed.
+
+
+
+
+
+
+And here's a list of tasks for grading comments. Just leave this here:
+ - Development
+ - Deployment
+ - Submission
+ - AA
+ - BB
+ - CC
+
+
+
