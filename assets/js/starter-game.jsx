@@ -17,74 +17,85 @@ function shuffle(array) {
   }
   return array;
 }
-
+/* State records: 
+1. array of letters in form of [["A", "hidden"], ["B", "hidden"]]
+2. the index of the last click
+3. is the two letters have been clicked and are displaying for 1 second.
+4. number of total click.
+*/
 class Memory extends React.Component {
   constructor(props) {
     super(props);
     const slotState = Object.freeze({
       HIDDEN: "hidden",
-      CLICKED: "clicked",
       REVEALED: "revealed"
     })
     let charArray = "ABCDEFGH".repeat(2).split("");
     charArray = charArray.map(x => [x, "hidden"])
     this.state = {
       slotArray: shuffle(charArray),
-      left: false,
+      last_clicked_idx: -1,
+      is_displaying: 0,
+      number_of_click: 0,
     };
   }
 
   click_hidden(id_num) {
+    let displaying = this.state.is_displaying;
+    if (displaying === 1) {
+      return;
+    }
     let temp_slots = this.state.slotArray;
-    var other_idx;
-    var other_state;
-    for (let i = 0; i < 16; i++) {
-      if (i != id_num && temp_slots[i][0] === temp_slots[id_num][0]) {
-        other_idx = i;
-        other_state = temp_slots[i][1];
+    let last = this.state.last_clicked_idx;
+    if (last >= 0) {
+      if (temp_slots[last][0] === temp_slots[id_num][0] &&
+        last !== id_num) {
+        temp_slots[id_num][1] = "revealed";
+        temp_slots[last][1] = "revealed";
+        last = -1;
+      } else {
+        temp_slots[id_num][1] = "revealed";
+        displaying = 1
+        window.setTimeout(() => {
+          this.button_time_out(id_num, this.state.last_clicked_idx);
+        }, 1000);
       }
     }
-    if (other_state === "clicked") {
+    else {
       temp_slots[id_num][1] = "revealed";
-      temp_slots[other_idx][1] = "revealed";
+      last = id_num;
     }
-    else if (other_state === "hidden") {
-      for (let i = 0; i < temp_slots.length; i++) {
-        if (temp_slots[i][1] === "clicked") {
-          temp_slots[i][1] = "hidden";
-        }
-      }
-      temp_slots[id_num][1] = "revealed";
-      window.setTimeout(() => {
-        this.button_time_out(id_num);
-      }, 1000);
-    }
-    let temp_state = _.assign({}, this.state, { slotArray: temp_slots });
+    let temp_state = _.assign({}, this.state,
+      {
+        slotArray: temp_slots, last_clicked_idx: last,
+        is_displaying: displaying,
+        number_of_click: this.state.number_of_click + 1
+      });
     this.setState(temp_state);
     // why must use bind to pass "this" to current function.
   }
 
-  click_clicked(id_num) {
+  button_time_out(id_num, last) {
     let temp_slots = this.state.slotArray;
-    temp_slots[id_num][1] = "revealed";
-    window.setTimeout(() => {
-      this.button_time_out(id_num);
-    }, 1000);
-    let temp_state = _.assign({}, this.state, { slotArray: temp_slots });
-    this.setState(temp_state);
-  }
-
-  button_time_out(id_num) {
-    let temp_slots = this.state.slotArray;
-    temp_slots[id_num][1] = "clicked";
-    let temp_state = _.assign({}, this.state, { slotArray: temp_slots });
+    temp_slots[id_num][1] = "hidden";
+    temp_slots[this.state.last_clicked_idx][1] = "hidden";
+    let temp_state = _.assign({}, this.state, {
+      slotArray: temp_slots,
+      last_clicked_idx: -1,
+      is_displaying: 0
+    });
     this.setState(temp_state);
   }
 
   restart(_ev) {
     let temp_slots = this.state.slotArray;
     temp_slots = shuffle(temp_slots.map(element => [element[0], "hidden"]));
-    let temp_state = _.assign({}, this.state, { slotArray: temp_slots });
+    let temp_state = _.assign({}, this.state, {
+      slotArray: temp_slots,
+      last_clicked_idx: -1,
+      is_displaying: 0,
+      number_of_click: 0
+    });
     this.setState(temp_state);
   }
 
@@ -102,11 +113,18 @@ class Memory extends React.Component {
     }
     return (
       <div>
-        {table}
+        <div>        {this.click_display()}
+        </div>
+        <div className="letters">  {table}</div>
+
         <div>
           <Restart_button root={this} />
         </div>
       </div>);
+  }
+
+  click_display() {
+    return <p>Number of clicks: {this.state.number_of_click}</p>;
   }
 
   getButton(id_num) {
@@ -115,18 +133,11 @@ class Memory extends React.Component {
         {this.state.slotArray[id_num][0]}
       </button>
     </div>;
-    let clicked = <div key={id_num} className="column">
-      <button onClick={this.click_clicked.bind(this, id_num)}>
-      </button>
-    </div>;
     let hidden = <div key={id_num} className="column">
       <button onClick={this.click_hidden.bind(this, id_num)}></button>
     </div>;
     if (this.state.slotArray[id_num][1] === "revealed") {
       return reveal;
-    }
-    else if (this.state.slotArray[id_num][1] === "clicked") {
-      return clicked;
     }
     else {
       return hidden;

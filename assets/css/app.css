@@ -2,8 +2,21 @@
 
 @import "~milligram/dist/milligram";
 
-.column > p {
-    padding-top: 10ex;
+.letters button {
+    font-size: 1.5em;
+    height: 100%;
+    width: 100%;
+}
+
+.row {
+    
+    width: 400px;
+    height: 100px;
+}
+
+.column {
+    width: 35%;
+    height: 80px;
     text-align: center;
 }
 
