@@ -57,7 +57,7 @@ class Memory extends React.Component {
         temp_slots[id_num][1] = "revealed";
         displaying = 1
         window.setTimeout(() => {
-          this.button_time_out(id_num, this.state.last_clicked_idx);
+          this.button_time_out(id_num, last);
         }, 1000);
       }
     }
@@ -78,7 +78,7 @@ class Memory extends React.Component {
   button_time_out(id_num, last) {
     let temp_slots = this.state.slotArray;
     temp_slots[id_num][1] = "hidden";
-    temp_slots[this.state.last_clicked_idx][1] = "hidden";
+    temp_slots[last][1] = "hidden";
     let temp_state = _.assign({}, this.state, {
       slotArray: temp_slots,
       last_clicked_idx: -1,
@@ -99,7 +99,6 @@ class Memory extends React.Component {
     this.setState(temp_state);
   }
 
-
   render() {
     let table = [];
     for (let i = 0; i < 4; i++) {
@@ -113,18 +112,15 @@ class Memory extends React.Component {
     }
     return (
       <div>
-        <div>        {this.click_display()}
+        <div>
+          <Click_display num_click={this.state.number_of_click} />
         </div>
-        <div className="letters">  {table}</div>
+        <div className="letters">{table}</div>
 
         <div>
           <Restart_button root={this} />
         </div>
       </div>);
-  }
-
-  click_display() {
-    return <p>Number of clicks: {this.state.number_of_click}</p>;
   }
 
   getButton(id_num) {
@@ -143,6 +139,10 @@ class Memory extends React.Component {
       return hidden;
     }
   }
+}
+
+function Click_display(param) {
+  return <p>Number of clicks: {param.num_click}</p>;
 }
 
 function Restart_button(param) {
