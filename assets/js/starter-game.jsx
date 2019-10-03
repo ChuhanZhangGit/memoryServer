@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom';
 import _ from 'lodash';
 
 export default function game_init(root) {
-  ReactDOM.render(<Memory />, root);
+  ReactDOM.render(<Memory channel={channel} />, root);
 }
 
 // Fisher–Yates shuffle algorithm
@@ -26,18 +26,24 @@ function shuffle(array) {
 class Memory extends React.Component {
   constructor(props) {
     super(props);
-    const slotState = Object.freeze({
-      HIDDEN: "hidden",
-      REVEALED: "revealed"
-    })
-    let charArray = "ABCDEFGH".repeat(2).split("");
-    charArray = charArray.map(x => [x, "hidden"])
+
+    this.channel = props.channel;
     this.state = {
-      slotArray: shuffle(charArray),
-      last_clicked_idx: -1,
-      is_displaying: 0,
+      display: Array(16).fill(""),
       number_of_click: 0,
     };
+
+    this.channel
+      .join()
+      .receive("ok", this.got_view.bind(this))
+      .receive("error", resp => { console.log("Unable to join", resp); });
+
+  }
+
+  get_view(view) {
+    console.log("new view", view);
+    // change this
+    this.setState(view.game);
   }
 
   click_hidden(id_num) {
@@ -67,7 +73,8 @@ class Memory extends React.Component {
     }
     let temp_state = _.assign({}, this.state,
       {
-        slotArray: temp_slots, last_clicked_idx: last,
+        slotArray: temp_slots,
+        last_clicked_idx: last,
         is_displaying: displaying,
         number_of_click: this.state.number_of_click + 1
       });
@@ -105,7 +112,6 @@ class Memory extends React.Component {
       let row = []
       for (let j = 0; j < 4; j++) {
         let id_num = i * 4 + j;
-        let id_str = id_num.toString();
         row.push(this.getButton(id_num));
       }
       table.push(<div key={"row" + i} className="row">{row}</div>);
@@ -124,20 +130,11 @@ class Memory extends React.Component {
   }
 
   getButton(id_num) {
-    let reveal = <div key={id_num} className="column">
+    return <div key={id_num} className="column">
       <button>
-        {this.state.slotArray[id_num][0]}
+        {this.state.slotArray[id_num]}
       </button>
     </div>;
-    let hidden = <div key={id_num} className="column">
-      <button onClick={this.click_hidden.bind(this, id_num)}></button>
-    </div>;
-    if (this.state.slotArray[id_num][1] === "revealed") {
-      return reveal;
-    }
-    else {
-      return hidden;
-    }
   }
 }
 
