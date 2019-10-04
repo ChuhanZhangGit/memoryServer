@@ -26,5 +26,14 @@ Yes
 Yes
 
 
+And here's a list of tasks for grading comments. Just leave this here:
+ - Development
+ - Deployment
+ - Submission
+ - AA
+ - BB
+ - CC
+
+
 
 
