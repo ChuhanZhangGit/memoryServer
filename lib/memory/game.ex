@@ -13,6 +13,7 @@ defmodule Memory.Game do
         %{
             slotArray: get_char_array(all_letter),
             last_clicked_idx: -1,
+            curr_clicked_idx: -1,
             is_displaying: 0,
             number_of_click: 0,
         }
@@ -28,6 +29,7 @@ defmodule Memory.Game do
                     ""
                 end end),
             number_of_click: game.number_of_click,
+            is_displaying: game.is_displaying,
         }
     end
 
@@ -42,10 +44,25 @@ defmodule Memory.Game do
     end
 
 
-    defp updateState(temp_slots, last, displaying, num_click) do 
+    def finish_timeout(game, _done) do 
+        temp_slots = game.slotArray
+        {last_letter, _} = Enum.at(temp_slots, game.last_clicked_idx)
+        {curr_letter, _} = Enum.at(temp_slots, game.curr_clicked_idx)
+
+        temp_slots = List.replace_at(temp_slots, game.last_clicked_idx, {last_letter, "hidden"})
+        |> List.replace_at(game.curr_clicked_idx, {curr_letter, "hidden"})
+        updateState(temp_slots, -1, -1, 0, game.number_of_click)
+    end
+
+    def restart(_game, _ev) do
+        new()
+    end
+    
+    defp updateState(temp_slots, last_idx, curr_idx, displaying, num_click) do 
         game = Map.new()
         Map.put(game, :slotArray, temp_slots)
-        |> Map.put(:last_clicked_idx, last)
+        |> Map.put(:last_clicked_idx, last_idx)
+        |> Map.put(:curr_clicked_idx, curr_idx)
         |> Map.put(:is_displaying, displaying)
         |> Map.put(:number_of_click, num_click)
     end
@@ -53,23 +70,23 @@ defmodule Memory.Game do
     defp handle_click(game, id_num) do
         temp_slots = game.slotArray
         last = game.last_clicked_idx
-        displaying = 0
         {last_letter, _} = Enum.at(temp_slots, last)
         {curr_letter, _} = Enum.at(temp_slots, id_num)
         if last >= 0 do
             if (last_letter == curr_letter &&
             last != id_num) do
                 temp_slots = List.replace_at(temp_slots, last, {last_letter, "revealed"})
-                |> List.replace_at(temp_slots, id_num, {curr_letter, "revealed"})
-                updateState(temp_slots, -1, 0, game.number_of_click+1)
+                |> List.replace_at(id_num, {curr_letter, "revealed"})
+                updateState(temp_slots, -1, -1, 0, game.number_of_click+1)
             else
-                temp_slots = List.replace_at(temp_slots, id_num, {last_letter, "revealed"})
-                displaying = 1
-                updateState(temp_slots, -1, displaying, game.number_of_click+1)
+                temp_slots = List.replace_at(temp_slots, id_num, {curr_letter, "revealed"})
+                # 1 means current displaying two letters for a certain timeout period
+                # 0 means not in timeout
+                updateState(temp_slots, last, id_num, 1, game.number_of_click+1)
             end
         else
             temp_slots = List.replace_at(temp_slots, id_num, {curr_letter, "revealed"})
-            updateState(temp_slots, id_num, 0, game.number_of_click+1)
+            updateState(temp_slots, id_num, -1, 0, game.number_of_click+1)
         end
     end
 

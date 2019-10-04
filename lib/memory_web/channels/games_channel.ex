@@ -23,7 +23,23 @@ defmodule MemoryWeb.GamesChannel do
     game = Game.click(socket.assigns[:game], id_num)
     socket = assign(socket, :game, game)
     BackupAgent.put(name, game)
-    IO.put "test game"
+    {:reply, {:ok, %{ "game" => Game.client_view(game)}}, socket}
+  end
+
+  def handle_in("timeout", %{"timeout" => _done}, socket) do
+    name = socket.assigns[:name]
+    game = Game.finish_timeout(socket.assigns[:game], _done)
+    socket = assign(socket, :game, game)
+    BackupAgent.put(name, game)
+    IO.inspect(game)
+    {:reply, {:ok, %{ "game" => Game.client_view(game)}}, socket}
+  end
+
+  def handle_in("restart", %{"restart" => _done}, socket) do
+    name = socket.assigns[:name]
+    game = Game.restart(socket.assigns[:game], _done)
+    socket = assign(socket, :game, game)
+    BackupAgent.put(name, game)
     IO.inspect(game)
     {:reply, {:ok, %{ "game" => Game.client_view(game)}}, socket}
   end
