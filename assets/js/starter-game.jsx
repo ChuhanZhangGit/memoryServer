@@ -3,7 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import _ from 'lodash';
 
-export default function game_init(root) {
+export default function game_init(root, channel) {
   ReactDOM.render(<Memory channel={channel} />, root);
 }
 
@@ -29,82 +29,87 @@ class Memory extends React.Component {
 
     this.channel = props.channel;
     this.state = {
-      display: Array(16).fill(""),
-      number_of_click: 0,
+      slotArray: Array(16).fill(""),
+      number_of_click: 0
     };
 
     this.channel
       .join()
       .receive("ok", this.got_view.bind(this))
       .receive("error", resp => { console.log("Unable to join", resp); });
-
   }
 
-  get_view(view) {
-    console.log("new view", view);
+  got_view(view) {
+    // console.log("new view", view);
+    // console.log(view.game.slotArray);
     // change this
     this.setState(view.game);
   }
 
-  click_hidden(id_num) {
-    let displaying = this.state.is_displaying;
-    if (displaying === 1) {
-      return;
-    }
-    let temp_slots = this.state.slotArray;
-    let last = this.state.last_clicked_idx;
-    if (last >= 0) {
-      if (temp_slots[last][0] === temp_slots[id_num][0] &&
-        last !== id_num) {
-        temp_slots[id_num][1] = "revealed";
-        temp_slots[last][1] = "revealed";
-        last = -1;
-      } else {
-        temp_slots[id_num][1] = "revealed";
-        displaying = 1
-        window.setTimeout(() => {
-          this.button_time_out(id_num, last);
-        }, 1000);
-      }
-    }
-    else {
-      temp_slots[id_num][1] = "revealed";
-      last = id_num;
-    }
-    let temp_state = _.assign({}, this.state,
-      {
-        slotArray: temp_slots,
-        last_clicked_idx: last,
-        is_displaying: displaying,
-        number_of_click: this.state.number_of_click + 1
-      });
-    this.setState(temp_state);
-    // why must use bind to pass "this" to current function.
+  // click_hidden(id_num) {
+  //   let displaying = this.state.is_displaying;
+  //   if (displaying === 1) {
+  //     return;
+  //   }
+  //   let temp_slots = this.state.slotArray;
+  //   let last = this.state.last_clicked_idx;
+  //   if (last >= 0) {
+  //     if (temp_slots[last][0] === temp_slots[id_num][0] &&
+  //       last !== id_num) {
+  //       temp_slots[id_num][1] = "revealed";
+  //       temp_slots[last][1] = "revealed";
+  //       last = -1;
+  //     } else {
+  //       temp_slots[id_num][1] = "revealed";
+  //       displaying = 1
+  //       window.setTimeout(() => {
+  //         this.button_time_out(id_num, last);
+  //       }, 1000);
+  //     }
+  //   }
+  //   else {
+  //     temp_slots[id_num][1] = "revealed";
+  //     last = id_num;
+  //   }
+  //   let temp_state = _.assign({}, this.state,
+  //     {
+  //       slotArray: temp_slots,
+  //       last_clicked_idx: last,
+  //       is_displaying: displaying,
+  //       number_of_click: this.state.number_of_click + 1
+  //     });
+  //   this.setState(temp_state);
+  //   // why must use bind to pass "this" to current function.
+  // }
+
+  on_click(id_num) {
+    this.channel.push("click", { id: id_num })
+      .receive("ok", this.got_view.bind(this));
   }
 
-  button_time_out(id_num, last) {
-    let temp_slots = this.state.slotArray;
-    temp_slots[id_num][1] = "hidden";
-    temp_slots[last][1] = "hidden";
-    let temp_state = _.assign({}, this.state, {
-      slotArray: temp_slots,
-      last_clicked_idx: -1,
-      is_displaying: 0
-    });
-    this.setState(temp_state);
-  }
+  // button_time_out(id_num, last) {
+  //   let temp_slots = this.state.slotArray;
+  //   temp_slots[id_num][1] = "hidden";
+  //   temp_slots[last][1] = "hidden";
+  //   let temp_state = _.assign({}, this.state, {
+  //     slotArray: temp_slots,
+  //     last_clicked_idx: -1,
+  //     is_displaying: 0
+  //   });
+  //   this.setState(temp_state);
+  // }
 
-  restart(_ev) {
-    let temp_slots = this.state.slotArray;
-    temp_slots = shuffle(temp_slots.map(element => [element[0], "hidden"]));
-    let temp_state = _.assign({}, this.state, {
-      slotArray: temp_slots,
-      last_clicked_idx: -1,
-      is_displaying: 0,
-      number_of_click: 0
-    });
-    this.setState(temp_state);
-  }
+  // restart(_ev) {
+  //   let temp_slots = this.state.slotArray;
+  //   temp_slots = shuffle(temp_slots.map(element => [element[0], "hidden"]));
+  //   let temp_state = _.assign({}, this.state, {
+  //     slotArray: temp_slots,
+  //     last_clicked_idx: -1,
+  //     is_displaying: 0,
+  //     number_of_click: 0
+  //   });
+  //   this.setState(temp_state);
+  // }
 
   render() {
     let table = [];
@@ -131,9 +136,12 @@ class Memory extends React.Component {
 
   getButton(id_num) {
     return <div key={id_num} className="column">
-      <button>
+      <button onClick={this.on_click.bind(this, id_num)}>
         {this.state.slotArray[id_num]}
       </button>
+      {/* <button onClick={(id_num) => this.on_click(id_num)} >
+        {this.state.display[id_num]}
+      </button> */}
     </div>;
   }
 }
@@ -146,9 +154,9 @@ function Restart_button(param) {
   let root = param.root;
   return (
     <div>
-      <button onClick={root.restart.bind(root)}>
+      <button onClick={() => root.restart.bind(root)}>
         Restart
-        </button>
+      </button>
     </div>
   );
 }

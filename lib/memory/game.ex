@@ -8,8 +8,6 @@ defmodule Memory.Game do
         |> Enum.map(fn x -> {x, "hidden"} end)
     end
 
-    
-
     def new do
         all_letter = String.duplicate("ABCDEFGH", 2)
         %{
