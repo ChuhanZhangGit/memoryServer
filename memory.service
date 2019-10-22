@@ -1,12 +1,12 @@
 [Unit]
-Description=Memory Game
+Description=Memory Game Server
 
 [Service]
 Type=simple
-User=memory
-Group=memory
+User=memory2
+Group=memory2
 Restart=on-failure
-Environment=MIX_ENV=prod "PORT=4791"
+Environment=MIX_ENV=prod "PORT=4792"
 Environment=LANG=en_US.UTF-8
 
 WorkingDirectory=/home/memory/memory
